@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Despachos SURH</title>
+  <style>
+    :root {
+      --primary-color: #1e3a8a;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #cbd5e1;
+      --accent-color: #0284c7;
+      --success-color: #16a34a;
+      --warning-color: #d97706;
+      --danger-color: #dc2626;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background-color: var(--primary-color);
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    nav {
+      display: flex;
+      background-color: #2563eb;
+      overflow-x: auto;
+    }
+
+    nav button {
+      flex: 1;
+      padding: 0.75rem 0.5rem;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+
+    nav button.active {
+      background-color: var(--primary-color);
+      border-bottom-color: #38bdf8;
+    }
+
+    main {
+      padding: 1rem;
+      flex: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--bg-color);
+      padding-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      background-color: #fff;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: center;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary { background-color: var(--primary-color); color: #fff; }
+    .btn-primary:hover { background-color: var(--primary-hover); }
+    
+    .btn-success { background-color: var(--success-color); color: #fff; }
+    .btn-warning { background-color: var(--warning-color); color: #fff; }
+    .btn-danger { background-color: var(--danger-color); color: #fff; }
+
+    .btn-search {
+      margin-top: 0.25rem;
+      background-color: var(--accent-color);
+      color: white;
+    }
+
+    .preview-box {
+      background-color: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 1rem;
+      white-space: pre-wrap;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.85rem;
+      min-height: 250px;
+      max-height: 450px;
+      overflow-y: auto;
+      color: #1e293b;
+      text-align: justify;
+      line-height: 1.6;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.75rem 0.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: #e2e8f0;
+      color: var(--text-main);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+
+    @media (min-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+      .action-buttons { flex-direction: row; }
+      .btn { width: auto; }
+    }
+
+    @media (min-width: 1024px) {
+      header h1 { font-size: 1.6rem; }
+      .spa-grid-generator {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+      .preview-box { min-height: 420px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Gerador de Despachos SURH</h1>
+  </header>
+
+  <nav>
+    <button class="nav-btn active" onclick="switchTab('gerarTab', this)">📝 Gerar Despacho</button>
+    <button class="nav-btn" onclick="switchTab('configTab', this); carregarTiposDespachoCrud();">⚙️ Config. Despachos</button>
+    <button class="nav-btn" onclick="switchTab('configMenuTab', this); carregarMenuSuspensoCrud();">🗂️ Config. Menus</button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: GERADOR DE DESPACHOS -->
+    <div id="gerarTab" class="tab-content active">
+      <div class="spa-grid-generator">
+        
+        <div class="card">
+          <div class="card-title">Configurar Despacho</div>
+
+          <div class="form-group">
+            <label for="tipoDespacho">Tipo de Despacho</label>
+            <select id="tipoDespacho" class="form-control" onchange="atualizarPreview()">
+              <option value="">Carregando...</option>
+            </select>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="matriculaInput">Matrícula (Sem dígito)</label>
+              <input type="text" id="matriculaInput" class="form-control" placeholder="Ex: 826284">
+            </div>
+            <div class="form-group" style="display:flex; align-items:flex-end;">
+              <button class="btn btn-search" onclick="buscarServidor()">🔍 Buscar Servidor</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Nome do Servidor</label>
+            <input type="text" id="servidorNome" class="form-control" readonly placeholder="Preenchido automaticamente">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>CPF</label>
+              <input type="text" id="servidorCpf" class="form-control" readonly placeholder="Preenchido automaticamente">
+            </div>
+            <div class="form-group">
+              <label>Cargo</label>
+              <input type="text" id="servidorCargo" class="form-control" readonly placeholder="Preenchido automaticamente">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Data de Admissão</label>
+              <input type="text" id="servidorDataAdmissao" class="form-control" readonly placeholder="Preenchido automaticamente">
+            </div>
+            <div class="form-group">
+              <label>Lotação</label>
+              <input type="text" id="servidorLotacao" class="form-control" readonly placeholder="Preenchido automaticamente">
+            </div>
+          </div>
+
+          <hr style="margin: 1rem 0; border: 0; border-top: 1px solid var(--border-color);">
+
+          <div class="card-title" style="font-size: 0.95rem; margin-top: 1rem;">Destinatários & Órgãos</div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Destinatário 1</label>
+              <select id="dest1" class="form-control dest-select" onchange="atualizarPreview()"></select>
+            </div>
+            <div class="form-group">
+              <label>Órgão 1</label>
+              <select id="orgao1" class="form-control orgao-select" onchange="atualizarPreview()"></select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Destinatário 2 (Opcional)</label>
+              <select id="dest2" class="form-control dest-select" onchange="atualizarPreview()"></select>
+            </div>
+            <div class="form-group">
+              <label>Órgão 2</label>
+              <select id="orgao2" class="form-control orgao-select" onchange="atualizarPreview()"></select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Destinatário 3 (Opcional)</label>
+              <select id="dest3" class="form-control dest-select" onchange="atualizarPreview()"></select>
+            </div>
+            <div class="form-group">
+              <label>Órgão 3</label>
+              <select id="orgao3" class="form-control orgao-select" onchange="atualizarPreview()"></select>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card">
+          <div class="card-title">Copie o Despacho Gerado</div>
+          <div id="previewArea" class="preview-box">Aguardando preenchimento dos dados...</div>
+          
+          <div class="action-buttons">
+            <button class="btn btn-primary" onclick="copiarTexto()">📋 Copiar Texto</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: CONFIGURAÇÃO DE TIPOS DE DESPACHO (CRUD) -->
+    <div id="configTab" class="tab-content">
+      <div class="card">
+        <div class="card-title" id="menuFormTitle">Adicionar Novo Tipo de Despacho</div>
+        
+        <input type="hidden" id="editRowIndex" value="">
+
+        <div class="form-group">
+          <label>Nome do Tipo de Despacho</label>
+          <input type="text" id="novoTipoNome" class="form-control" placeholder="Ex: Certidão de Não Pendência de Férias">
+        </div>
+        <div class="form-group">
+          <label>Texto do Despacho (use {{NOME}}, {{MATRICULA}}, {{CPF}}, {{CARGO}}, {{DATA_ADMISSAO}}, {{LOTACAO}}, {{COMPONENTE}}, {{DEST1}}, {{DEST2}}, {{DEST3}}, {{ORGAO1}}, {{ORGAO2}}, {{ORGAO3}}, {{DATA_ATUAL}})</label>
+          <textarea id="novoTipoTemplate" class="form-control" style="min-height: 200px; resize: vertical;" placeholder="Escreva aqui o texto do despacho..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button class="btn btn-primary" id="btnSalvarMenu" onclick="salvarOuAtualizarTipoDespacho()" style="flex: 1;">Adicionar Tipo de Despacho</button>
+          <button class="btn btn-danger" id="btnCancelarMenu" onclick="cancelarEdicaoTipoDespacho()" style="display: none; width: auto;">Cancelar</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Linha</th>
+                <th>Nome</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tiposDespachoTbody">
+              <tr><td colspan="3" style="text-align: center;">Carregando itens...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: CONFIGURAÇÃO DE MENU_SUSPENSO (Destinatários / Órgãos) -->
+    <div id="configMenuTab" class="tab-content">
+      <div class="card">
+        <div class="card-title" id="menuSuspensoFormTitle">Adicionar Novo Item ao Menu (MENU_SUSPENSO)</div>
+        
+        <input type="hidden" id="editMenuRowIndex" value="">
+
+        <div class="grid-2" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label>Destinatário</label>
+            <input type="text" id="novoDestinatario" class="form-control" placeholder="Ex: À 14ª GEE">
+          </div>
+          <div class="form-group">
+            <label>Órgão (Opcional)</label>
+            <input type="text" id="novoOrgao" class="form-control" placeholder="Ex: PGE COOPA">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button class="btn btn-primary" id="btnSalvarMenuSuspenso" onclick="salvarOuAtualizarItemMenu()" style="flex: 1;">Adicionar Item ao Menu</button>
+          <button class="btn btn-danger" id="btnCancelarMenuSuspenso" onclick="cancelarEdicaoMenu()" style="display: none; width: auto;">Cancelar</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Linha</th>
+                <th>Destinatário</th>
+                <th>Órgão</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="menuSuspensoTbody">
+              <tr><td colspan="4" style="text-align: center;">Carregando itens...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    // URL do Backend GAS
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwLXYuIwceSSc-m7fglrtNUhRO8SlxXISo-DaCyIXPMiQgZDYco0wRJpU1HrIzhCD1l/exec';
+
+    let tiposDespacho = [];
+    let tiposDespachoCrud = [];
+    let opcoesMenu = { destinatarios: [], orgaos: [] };
+    let menuSuspensoCrud = [];
+    let servidorAtual = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      carregarTiposDespachoIniciais();
+      carregarOpcoesIniciais();
+    });
+
+    // Função Genérica para Fazer Requisições ao GAS
+    async function apiCall(action, data = {}) {
+      try {
+        const response = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8', // Evita bloqueio de CORS no GAS
+          },
+          body: JSON.stringify({ action, ...data })
+        });
+        
+        if (!response.ok) throw new Error('Erro de rede: ' + response.statusText);
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+    }
+
+    async function carregarTiposDespachoIniciais() {
+      try {
+        const tipos = await apiCall('carregarTiposDespacho');
+        tiposDespacho = tipos || [];
+        preencherSelectTipos();
+        atualizarPreview();
+      } catch (err) {
+        showToast("Erro ao carregar tipos de despacho: " + err.message);
+      }
+    }
+
+    async function carregarOpcoesIniciais() {
+      try {
+        const dados = await apiCall('carregarOpcoesMenu');
+        opcoesMenu = dados;
+        preencherSelects();
+        atualizarPreview();
+      } catch (err) {
+        showToast("Erro ao carregar menus: " + err.message);
+      }
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function preencherSelectTipos() {
+      const select = document.getElementById('tipoDespacho');
+      select.innerHTML = '';
+      if (tiposDespacho.length === 0) {
+        select.innerHTML = '<option value="">Nenhum tipo cadastrado</option>';
+        return;
+      }
+      tiposDespacho.forEach((t, idx) => {
+        select.innerHTML += `<option value="${idx}">${t.nome}</option>`;
+      });
+    }
+
+    function preencherSelects() {
+      const destSelects = document.querySelectorAll('.dest-select');
+      const orgaoSelects = document.querySelectorAll('.orgao-select');
+
+      destSelects.forEach(select => {
+        select.innerHTML = '<option value="">-- Selecione --</option>';
+        opcoesMenu.destinatarios.forEach(d => {
+          select.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+      });
+
+      orgaoSelects.forEach(select => {
+        select.innerHTML = '<option value="">-- Selecione --</option>';
+        opcoesMenu.orgaos.forEach(o => {
+          select.innerHTML += `<option value="${o}">${o}</option>`;
+        });
+      });
+    }
+
+    async function buscarServidor() {
+      const mat = document.getElementById('matriculaInput').value.trim();
+      if (!mat) {
+        showToast("Digite uma matrícula válida.");
+        return;
+      }
+      
+      showToast("Buscando servidor...");
+      try {
+        const res = await apiCall('buscarServidorPorMatricula', { matricula: mat });
+        if (res.success) {
+          servidorAtual = res.servidor;
+          document.getElementById('servidorNome').value = res.servidor.nome;
+          document.getElementById('servidorCpf').value = res.servidor.cpf;
+          document.getElementById('servidorCargo').value = res.servidor.cargo;
+          document.getElementById('servidorDataAdmissao').value = res.servidor.dataAdmissao || '';
+          document.getElementById('servidorLotacao').value = res.servidor.lotacao || '';
+          showToast("Servidor encontrado!");
+          atualizarPreview();
+        } else {
+          showToast(res.message);
+        }
+      } catch (err) {
+        showToast("Erro: " + err.message);
+      }
+    }
+
+    function gerarTextoDespacho() {
+      const select = document.getElementById('tipoDespacho');
+      const idx = select.value;
+      if (idx === '' || idx === null || idx === undefined) return 'Selecione um tipo de despacho...';
+      const tipo = tiposDespacho[Number(idx)];
+      if (!tipo) return 'Selecione um tipo de despacho...';
+      
+      let texto = tipo.template || '';
+      
+      const nome = servidorAtual ? servidorAtual.nome : '[NOME SERVIDOR]';
+      const mat = servidorAtual ? servidorAtual.matricula : '[MATRÍCULA]';
+      const cpf = servidorAtual ? servidorAtual.cpf : '[CPF]';
+      const cargo = servidorAtual ? servidorAtual.cargo : '[CARGO]';
+      const dataAdmissao = servidorAtual ? (servidorAtual.dataAdmissao || '[DATA ADMISSÃO]') : '[DATA ADMISSÃO]';
+      const lotacao = servidorAtual ? (servidorAtual.lotacao || '[LOTAÇÃO]') : '[LOTAÇÃO]';
+      const componente = servidorAtual ? (servidorAtual.componente || '[COMPONENTE]') : '[COMPONENTE]';
+
+      const d1 = document.getElementById('dest1').value || '';
+      const d2 = document.getElementById('dest2').value || '';
+      const d3 = document.getElementById('dest3').value || '';
+      const o1 = document.getElementById('orgao1').value || '';
+      const o2 = document.getElementById('orgao2').value || '';
+      const o3 = document.getElementById('orgao3').value || '';
+
+      const hoje = new Date();
+      const opcoesData = { day: 'numeric', month: 'long', year: 'numeric' };
+      const dataAtualStr = hoje.toLocaleDateString('pt-BR', opcoesData);
+      
+      texto = texto.replace(/\{\{NOME\}\}/g, nome);
+      texto = texto.replace(/\{\{MATRICULA\}\}/g, mat);
+      texto = texto.replace(/\{\{CPF\}\}/g, cpf);
+      texto = texto.replace(/\{\{CARGO\}\}/g, cargo);
+      texto = texto.replace(/\{\{DATA_ADMISSAO\}\}/g, dataAdmissao);
+      texto = texto.replace(/\{\{LOTACAO\}\}/g, lotacao);
+      texto = texto.replace(/\{\{COMPONENTE\}\}/g, componente);
+      texto = texto.replace(/\{\{DEST1\}\}/g, d1);
+      texto = texto.replace(/\{\{DEST2\}\}/g, d2);
+      texto = texto.replace(/\{\{DEST3\}\}/g, d3);
+      texto = texto.replace(/\{\{ORGAO1\}\}/g, o1);
+      texto = texto.replace(/\{\{ORGAO2\}\}/g, o2);
+      texto = texto.replace(/\{\{ORGAO3\}\}/g, o3);
+      texto = texto.replace(/\{\{DATA_ATUAL\}\}/g, dataAtualStr);
+      
+      return texto.trim();
+    }
+
+    function atualizarPreview() {
+      document.getElementById('previewArea').innerText = gerarTextoDespacho();
+    }
+
+    function copiarTexto() {
+      const texto = document.getElementById('previewArea').innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        showToast("Texto copiado para a área de transferência!");
+      });
+    }
+
+    // Funções CRUD para TIPOS_DESPACHOS
+    async function carregarTiposDespachoCrud() {
+      const tbody = document.getElementById('tiposDespachoTbody');
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Carregando itens...</td></tr>';
+      
+      try {
+        const itens = await apiCall('listarTiposDespacho');
+        tiposDespachoCrud = itens || [];
+        if (!itens || itens.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nenhum tipo cadastrado.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = itens.map((item, idx) => `
+          <tr>
+            <td>${item.rowIndex}</td>
+            <td>${item.nome}</td>
+            <td>
+              <button class="btn btn-warning" style="padding:4px 8px; font-size:0.75rem; margin-right:4px;" onclick="prepararEdicaoTipoDespacho(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deletarTipoDespacho(${idx})">Excluir</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--danger-color);">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    function prepararEdicaoTipoDespacho(idx) {
+      const item = tiposDespachoCrud[idx];
+      if (!item) return;
+      document.getElementById('editRowIndex').value = item.rowIndex;
+      document.getElementById('novoTipoNome').value = item.nome;
+      document.getElementById('novoTipoTemplate').value = item.template;
+      
+      document.getElementById('menuFormTitle').innerText = `Editar Tipo de Despacho (Linha ${item.rowIndex})`;
+      document.getElementById('btnSalvarMenu').innerText = 'Salvar Alteração';
+      document.getElementById('btnCancelarMenu').style.display = 'block';
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicaoTipoDespacho() {
+      document.getElementById('editRowIndex').value = '';
+      document.getElementById('novoTipoNome').value = '';
+      document.getElementById('novoTipoTemplate').value = '';
+      
+      document.getElementById('menuFormTitle').innerText = 'Adicionar Novo Tipo de Despacho';
+      document.getElementById('btnSalvarMenu').innerText = 'Adicionar Tipo de Despacho';
+      document.getElementById('btnCancelarMenu').style.display = 'none';
+    }
+
+    async function salvarOuAtualizarTipoDespacho() {
+      const rowIndex = document.getElementById('editRowIndex').value;
+      const nome = document.getElementById('novoTipoNome').value.trim();
+      const template = document.getElementById('novoTipoTemplate').value;
+      
+      if (!nome) {
+        showToast("Preencha o nome do tipo de despacho.");
+        return;
+      }
+      if (!template.trim()) {
+        showToast("Preencha o texto do despacho.");
+        return;
+      }
+
+      try {
+        if (rowIndex) {
+          showToast("Atualizando tipo...");
+          const res = await apiCall('atualizarTipoDespacho', { rowIndex, nome, template });
+          showToast(res.message);
+          cancelarEdicaoTipoDespacho();
+        } else {
+          showToast("Adicionando tipo...");
+          const res = await apiCall('adicionarTipoDespacho', { nome, template });
+          showToast(res.message);
+          document.getElementById('novoTipoNome').value = '';
+          document.getElementById('novoTipoTemplate').value = '';
+        }
+        carregarTiposDespachoCrud();
+        carregarTiposDespachoIniciais();
+      } catch (err) {
+        showToast("Erro: " + err.message);
+      }
+    }
+
+    async function deletarTipoDespacho(idx) {
+      const item = tiposDespachoCrud[idx];
+      if (!item) return;
+      if (confirm(`Tem certeza que deseja excluir o tipo "${item.nome}"?`)) {
+        try {
+          const res = await apiCall('excluirTipoDespacho', { rowIndex: item.rowIndex });
+          showToast(res.message);
+          carregarTiposDespachoCrud();
+          carregarTiposDespachoIniciais();
+        } catch (err) {
+          showToast("Erro: " + err.message);
+        }
+      }
+    }
+
+    // Funções CRUD para MENU_SUSPENSO
+    async function carregarMenuSuspensoCrud() {
+      const tbody = document.getElementById('menuSuspensoTbody');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Carregando itens...</td></tr>';
+      
+      try {
+        const itens = await apiCall('listarMenuSuspensoCrud');
+        menuSuspensoCrud = itens || [];
+        if (!itens || itens.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum item cadastrado.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = itens.map((item, idx) => `
+          <tr>
+            <td>${item.rowIndex}</td>
+            <td>${item.destinatario}</td>
+            <td>${item.orgao}</td>
+            <td>
+              <button class="btn btn-warning" style="padding:4px 8px; font-size:0.75rem; margin-right:4px;" onclick="prepararEdicaoMenu(${idx})">Editar</button>
+              <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deletarItemMenu(${idx})">Excluir</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger-color);">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    function prepararEdicaoMenu(idx) {
+      const item = menuSuspensoCrud[idx];
+      if (!item) return;
+      document.getElementById('editMenuRowIndex').value = item.rowIndex;
+      document.getElementById('novoDestinatario').value = item.destinatario;
+      document.getElementById('novoOrgao').value = item.orgao;
+      
+      document.getElementById('menuSuspensoFormTitle').innerText = `Editar Item do Menu (Linha ${item.rowIndex})`;
+      document.getElementById('btnSalvarMenuSuspenso').innerText = 'Salvar Alteração';
+      document.getElementById('btnCancelarMenuSuspenso').style.display = 'block';
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelarEdicaoMenu() {
+      document.getElementById('editMenuRowIndex').value = '';
+      document.getElementById('novoDestinatario').value = '';
+      document.getElementById('novoOrgao').value = '';
+      
+      document.getElementById('menuSuspensoFormTitle').innerText = 'Adicionar Novo Item ao Menu (MENU_SUSPENSO)';
+      document.getElementById('btnSalvarMenuSuspenso').innerText = 'Adicionar Item ao Menu';
+      document.getElementById('btnCancelarMenuSuspenso').style.display = 'none';
+    }
+
+    async function salvarOuAtualizarItemMenu() {
+      const rowIndex = document.getElementById('editMenuRowIndex').value;
+      const destinatario = document.getElementById('novoDestinatario').value.trim();
+      const orgao = document.getElementById('novoOrgao').value.trim();
+      
+      if (!destinatario) {
+        showToast("Preencha pelo menos o Destinatário.");
+        return;
+      }
+
+      try {
+        if (rowIndex) {
+          showToast("Atualizando item...");
+          const res = await apiCall('atualizarItemMenu', { rowIndex, destinatario, orgao });
+          showToast(res.message);
+          cancelarEdicaoMenu();
+        } else {
+          showToast("Adicionando item...");
+          const res = await apiCall('adicionarItemMenu', { destinatario, orgao });
+          showToast(res.message);
+          document.getElementById('novoDestinatario').value = '';
+          document.getElementById('novoOrgao').value = '';
+        }
+        carregarMenuSuspensoCrud();
+        carregarOpcoesIniciais();
+      } catch (err) {
+        showToast("Erro: " + err.message);
+      }
+    }
+
+    async function deletarItemMenu(idx) {
+      const item = menuSuspensoCrud[idx];
+      if (!item) return;
+      if (confirm(`Tem certeza que deseja excluir o item "${item.destinatario}"?`)) {
+        try {
+          const res = await apiCall('excluirItemMenu', { rowIndex: item.rowIndex });
+          showToast(res.message);
+          carregarMenuSuspensoCrud();
+          carregarOpcoesIniciais();
+        } catch (err) {
+          showToast("Erro: " + err.message);
+        }
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+  </script>
+</body>
+</html>
