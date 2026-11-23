@@ -186,6 +186,12 @@
       line-height: 1.6;
     }
 
+    .preview-date-line {
+      display: block;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+
     .action-buttons {
       display: flex;
       flex-direction: column;
@@ -609,12 +615,43 @@
       return texto.trim();
     }
 
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatarPreviewHtml(texto) {
+      const linhas = texto.split(/\r?\n/);
+      if (linhas.length <= 1) {
+        return escapeHtml(texto);
+      }
+
+      let ultimaIdx = linhas.length - 1;
+      while (ultimaIdx > 0 && linhas[ultimaIdx].trim() === '') {
+        ultimaIdx--;
+      }
+
+      if (ultimaIdx === 0) {
+        return escapeHtml(texto);
+      }
+
+      const corpo = linhas.slice(0, ultimaIdx).join('\n');
+      const linhaCentralizada = linhas[ultimaIdx];
+      const restante = linhas.slice(ultimaIdx + 1).join('\n');
+
+      return `${escapeHtml(corpo)}\n<span class="preview-date-line">${escapeHtml(linhaCentralizada)}</span>${restante ? '\n' + escapeHtml(restante) : ''}`;
+    }
+
     function atualizarPreview() {
-      document.getElementById('previewArea').innerText = gerarTextoDespacho();
+      const texto = gerarTextoDespacho();
+      document.getElementById('previewArea').innerHTML = formatarPreviewHtml(texto);
     }
 
     function copiarTexto() {
-      const texto = document.getElementById('previewArea').innerText;
+      const texto = gerarTextoDespacho();
       navigator.clipboard.writeText(texto).then(() => {
         showToast("Texto copiado para a área de transferência!");
       });
